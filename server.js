@@ -16,8 +16,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const klantenLijst = {
-  klant_kapper_jansen: "info@kapperjansen.be",
-  klant_bakker_pieters: "contact@bakkerpieters.nl",
+  lannie: "lanniewebdesign@gmail.com",
 };
 
 app.post("/api/send-mail", async (req, res) => {
@@ -29,10 +28,11 @@ app.post("/api/send-mail", async (req, res) => {
 
   try {
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"${naam} (via jouw website)" <${process.env.EMAIL_USER}>`,
+      replyTo: email,
       to: doelEmail,
       subject: `Nieuw bericht van: ${naam}`,
-      text: `Naam: ${naam}\nEmail: ${email}\n\nBericht:\n${bericht}`,
+      text: `Je hebt een nieuw bericht via je website!\n\nNaam: ${naam}\nEmail: ${email}\n\nBericht:\n${bericht}`,
     };
 
     await transporter.sendMail(mailOptions);
@@ -44,7 +44,6 @@ app.post("/api/send-mail", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-// '0.0.0.0' is super belangrijk voor Docker en Render!
 app.listen(PORT, () => {
-  console.log(`🚀 API server draait op poort ${PORT}`);
+  console.log(`🚀 Jouw centrale API server draait op poort ${PORT}`);
 });
