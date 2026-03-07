@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const klantenLijst = {
-  lannie: "lanniewebdesign@gmail.com",
+  carestonesolutions: "info@carestonesolutions.be",
 };
 
 app.post("/api/send-mail", async (req, res) => {
