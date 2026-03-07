@@ -2,10 +2,39 @@ require("dotenv").config();
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
+const mongoose = require("mongoose");
+const rateLimit = require("express-rate-limit");
+
+const PORT = process.env.PORT || 3000;
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
+
+const emailLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+  message: { error: "Too many requests from this IP, please try again after 15 minutes." },
+});
+
+app.use("/api/send-mail", emailLimiter);
+
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => console.log("Connected to MongoDB!"))
+  .catch((err) => console.error("MongoDB connection error:", err));
+
+const clientSchema = new mongoose.Schema(
+  {
+    klantId: String,
+    email: String,
+    companyName: String,
+  },
+  { collection: "clients" },
+);
+
+const Client = mongoose.model("Client", clientSchema);
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -16,35 +45,67 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const klantenLijst = {
-  carestonesolutions: "info@carestonesolutions.be",
-};
-
 app.post("/api/send-mail", async (req, res) => {
   const { naam, email, bericht, klantId } = req.body;
-  const doelEmail = klantenLijst[klantId];
 
-  if (!doelEmail) return res.status(403).json({ error: "Ongeldige klant ID." });
-  if (!naam || !email || !bericht) return res.status(400).json({ error: "Vul alles in." });
+  if (!naam || !email || !bericht || !klantId) {
+    return res.status(400).json({ error: "Please fill in all fields." });
+  }
 
   try {
+    const foundClient = await Client.findOne({ klantId: klantId });
+
+    if (!foundClient || !foundClient.email) {
+      return res.status(403).json({ error: "Invalid client ID. Client not found." });
+    }
+
+    const targetEmail = foundClient.email;
+
     const mailOptions = {
-      from: `"${naam} (via jouw website)" <${process.env.EMAIL_USER}>`,
+      from: {
+        name: `${foundClient.companyName}`,
+        address: process.env.EMAIL_USER,
+      },
       replyTo: email,
-      to: doelEmail,
+      to: targetEmail,
       subject: `Nieuw bericht van: ${naam}`,
       text: `Je hebt een nieuw bericht via je website!\n\nNaam: ${naam}\nEmail: ${email}\n\nBericht:\n${bericht}`,
+      html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="background-color: #2563eb; padding: 20px; text-align: center;">
+          <h2 style="color: #ffffff; margin: 0; font-size: 22px;">Nieuw bericht via de website</h2>
+        </div>
+        <div style="padding: 30px; background-color: #ffffff;">
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+            <tr>
+              <td style="padding: 12px; border: 1px solid #eee; background-color: #f8fafc; width: 30%; color: #475569; font-weight: bold;">Naam:</td>
+              <td style="padding: 12px; border: 1px solid #eee; color: #1e293b;">${naam}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #eee; background-color: #f8fafc; color: #475569; font-weight: bold;">E-mailadres:</td>
+              <td style="padding: 12px; border: 1px solid #eee;">
+                <a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">${email}</a>
+              </td>
+            </tr>
+          </table>
+          <h3 style="color: #1e293b; font-size: 16px; border-bottom: 2px solid #2563eb; padding-bottom: 5px; display: inline-block; margin-top: 0;">Bericht:</h3>
+          <div style="background-color: #f8fafc; padding: 15px; border-left: 4px solid #2563eb; border-radius: 4px; color: #334155; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${bericht}</div>
+        </div>
+        <div style="background-color: #f1f5f9; padding: 15px; text-align: center; border-top: 1px solid #e2e8f0;">
+          <p style="margin: 0; font-size: 12px; color: #64748b;">Dit is een automatisch bericht vanaf het contactformulier op je website.</p>
+        </div>
+      </div>
+      `,
     };
 
     await transporter.sendMail(mailOptions);
-    res.status(200).json({ success: true, message: "Done! Mail is verstuurd." });
+    res.status(200).json({ success: true, message: "Email sent successfully!" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, error: "Fout bij verzenden." });
+    console.error("Database or Email error:", error);
+    res.status(500).json({ success: false, error: "An error occurred while sending the email." });
   }
 });
 
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Jouw centrale API server draait op poort ${PORT}`);
+  console.log(`Secure API server running on port ${PORT}`);
 });
