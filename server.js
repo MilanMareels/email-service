@@ -1,3 +1,4 @@
+require("dns").setDefaultResultOrder("ipv4first");
 require("dotenv").config();
 const express = require("express");
 const nodemailer = require("nodemailer");
@@ -8,7 +9,9 @@ app.use(cors());
 app.use(express.json());
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, // Gebruik SSL/TLS
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
