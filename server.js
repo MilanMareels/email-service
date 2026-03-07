@@ -9,7 +9,20 @@ const PORT = process.env.PORT || 3000;
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = ["https://www.carestonesolutions.be", "https://carestonesolutions.be", "http://localhost:3000"];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS policy."));
+      }
+    },
+  }),
+);
+
 app.use(express.json());
 
 const emailLimiter = rateLimit({
