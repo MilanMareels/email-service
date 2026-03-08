@@ -32,7 +32,6 @@ const emailLimiter = rateLimit({
 });
 
 app.use("/api/send-mail", emailLimiter);
-app.use("/api/hello", emailLimiter);
 
 mongoose
   .connect(process.env.MONGODB_URI)
