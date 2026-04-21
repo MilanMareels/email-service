@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Beheer Dashboard</title>
+    <style>
+      /* Algemene styling & kleuren */
+      :root {
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --danger: #ef4444;
+        --danger-hover: #dc2626;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --bg: #f3f4f6;
+        --surface: #ffffff;
+        --text-main: #1f2937;
+        --text-muted: #6b7280;
+        --border: #e5e7eb;
+      }
+
+      body {
+        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg);
+        color: var(--text-main);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      h2,
+      h3 {
+        margin-top: 0;
+      }
+
+      /* Layouts */
+      .container {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 0 20px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .card {
+        background: var(--surface);
+        border-radius: 12px;
+        box-shadow:
+          0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+
+      @media (max-width: 768px) {
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Formulieren & Knoppen */
+      .form-group {
+        margin-bottom: 12px;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        box-sizing: border-box;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+        width: 100%;
+      }
+      .btn-primary:hover {
+        background: var(--primary-hover);
+      }
+
+      .btn-danger {
+        background: var(--danger);
+        color: white;
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      .btn-danger:hover {
+        background: var(--danger-hover);
+      }
+
+      .btn-warning {
+        background: var(--warning);
+        color: white;
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      .btn-warning:hover {
+        background: #d97706;
+      }
+
+      .btn-secondary {
+        background: var(--text-muted);
+        color: white;
+      }
+      .btn-secondary:hover {
+        background: #4b5563;
+      }
+
+      /* Lijst items */
+      .item-list {
+        margin-top: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fafafa;
+      }
+
+      .item-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .item-title {
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .item-sub {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+      .actions {
+        display: flex;
+        gap: 6px;
+      }
+
+      /* Login Specifiek */
+      #loginSection {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+      }
+
+      .login-card {
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* Header */
+      .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+
+      /* Modal (Pop-up voor updaten) */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+      }
+
+      .modal-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+      }
+
+      .modal-content {
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        transform: translateY(-20px);
+        transition: transform 0.2s;
+      }
+
+      .modal-overlay.active .modal-content {
+        transform: translateY(0);
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loginSection">
+      <div class="card login-card">
+        <h2 style="color: var(--primary)">🛡️ API Beveiliging</h2>
+        <p style="color: var(--text-muted); margin-bottom: 24px">Log in om de API te beheren</p>
+
+        <div class="form-group">
+          <input type="email" id="email" placeholder="E-mailadres" value="milan.mareels@gmail.com" />
+        </div>
+        <div class="form-group">
+          <input type="password" id="password" placeholder="Wachtwoord" />
+        </div>
+        <button class="btn-primary" onclick="login()">Veilig Inloggen</button>
+      </div>
+    </div>
+
+    <div id="dashboardSection" class="container hidden">
+      <div class="dashboard-header">
+        <h2>🚀 Dashboard Beheer</h2>
+        <button class="btn-secondary" onclick="logout()">Log Uit</button>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>🏢 Klanten (Bedrijven)</h3>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px">Voeg bedrijven toe die e-mails mogen verzenden.</p>
+
+          <div class="form-group"><input type="text" id="klantId" placeholder="Klant ID (bijv. klant_123)" /></div>
+          <div class="form-group"><input type="text" id="companyName" placeholder="Bedrijfsnaam" /></div>
+          <div class="form-group"><input type="email" id="clientEmail" placeholder="Ontvangst E-mail" /></div>
+          <button class="btn-primary" onclick="addClient()">+ Klant Toevoegen</button>
+
+          <div id="clientsList" class="item-list">Laden...</div>
+        </div>
+
+        <div class="card">
+          <h3>🌍 CORS Domeinen</h3>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px">Welke websites mogen met de API communiceren?</p>
+
+          <div class="form-group">
+            <input type="text" id="corsOrigin" placeholder="URL (bijv. https://www.website.be)" />
+          </div>
+          <button class="btn-primary" onclick="addCors()">+ Domein Toevoegen</button>
+
+          <div id="corsList" class="item-list">Laden...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+      <div class="modal-content">
+        <h3 id="modalTitle">Bewerken</h3>
+
+        <div id="modalBody"></div>
+
+        <div class="modal-actions">
+          <button class="btn-secondary" style="flex: 1" onclick="closeModal()">Annuleren</button>
+          <button class="btn-primary" style="flex: 1" onclick="saveUpdate()">Opslaan</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let token = localStorage.getItem("token");
+      let editingItem = null;
+
+      const headers = () => ({ "Content-Type": "application/json", Authorization: `Bearer ${token}` });
+
+      if (token) showDashboard();
+
+      async function login() {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          token = data.token;
+          localStorage.setItem("token", token);
+          showDashboard();
+        } else {
+          alert("Foute login gegevens. Probeer het opnieuw.");
+        }
+      }
+
+      function logout() {
+        localStorage.removeItem("token");
+        token = null;
+        document.getElementById("loginSection").classList.remove("hidden");
+        document.getElementById("dashboardSection").classList.add("hidden");
+      }
+
+      function showDashboard() {
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("dashboardSection").classList.remove("hidden");
+        loadClients();
+        loadCors();
+      }
+
+      async function loadClients() {
+        const res = await fetch("/api/clients", { headers: headers() });
+        if (res.status === 401) return logout();
+        const clients = await res.json();
+
+        const list = document.getElementById("clientsList");
+        if (clients.length === 0) list.innerHTML = "<p style='color: #6b7280; font-size: 13px;'>Geen klanten gevonden.</p>";
+        else
+          list.innerHTML = clients
+            .map(
+              (c) => `
+        <div class="item">
+          <div class="item-info">
+            <span class="item-title">${c.companyName}</span>
+            <span class="item-sub">${c.klantId} | ${c.email}</span>
+          </div>
+          <div class="actions">
+            <button class="btn-warning" onclick="openEditClient('${c._id}', '${c.klantId}', '${c.companyName}', '${c.email}')">✏️</button>
+            <button class="btn-danger" onclick="deleteClient('${c._id}')">🗑️</button>
+          </div>
+        </div>
+      `,
+            )
+            .join("");
+      }
+
+      async function addClient() {
+        const body = {
+          klantId: document.getElementById("klantId").value,
+          companyName: document.getElementById("companyName").value,
+          email: document.getElementById("clientEmail").value,
+        };
+        if (!body.klantId || !body.companyName || !body.email) return alert("Vul alle velden in.");
+
+        await fetch("/api/clients", { method: "POST", headers: headers(), body: JSON.stringify(body) });
+
+        document.getElementById("klantId").value = "";
+        document.getElementById("companyName").value = "";
+        document.getElementById("clientEmail").value = "";
+        loadClients();
+      }
+
+      async function deleteClient(id) {
+        if (confirm("Weet je zeker dat je deze klant wilt verwijderen? Dit kan niet ongedaan worden gemaakt.")) {
+          await fetch(`/api/clients/${id}`, { method: "DELETE", headers: headers() });
+          loadClients();
+        }
+      }
+
+      async function loadCors() {
+        const res = await fetch("/api/cors", { headers: headers() });
+        const origins = await res.json();
+
+        const list = document.getElementById("corsList");
+        if (origins.length === 0) list.innerHTML = "<p style='color: #6b7280; font-size: 13px;'>Geen domeinen gevonden.</p>";
+        else
+          list.innerHTML = origins
+            .map(
+              (o) => `
+        <div class="item">
+          <span class="item-title" style="font-size: 14px;">${o.origin}</span>
+          <div class="actions">
+            <button class="btn-warning" onclick="openEditCors('${o._id}', '${o.origin}')">✏️</button>
+            <button class="btn-danger" onclick="deleteCors('${o._id}')">🗑️</button>
+          </div>
+        </div>
+      `,
+            )
+            .join("");
+      }
+
+      async function addCors() {
+        const origin = document.getElementById("corsOrigin").value;
+        if (!origin) return alert("Vul een domein in.");
+
+        await fetch("/api/cors", { method: "POST", headers: headers(), body: JSON.stringify({ origin }) });
+        document.getElementById("corsOrigin").value = "";
+        loadCors();
+      }
+
+      async function deleteCors(id) {
+        if (confirm("Weet je zeker dat je dit domein de toegang wilt ontzeggen? Formulierverzendingen vanaf deze website zullen direct stoppen met werken.")) {
+          await fetch(`/api/cors/${id}`, { method: "DELETE", headers: headers() });
+          loadCors();
+        }
+      }
+
+      const modal = document.getElementById("editModal");
+      const modalBody = document.getElementById("modalBody");
+
+      function openEditClient(id, klantId, companyName, email) {
+        editingItem = { id, type: "client" };
+        document.getElementById("modalTitle").innerText = "Klant Bewerken";
+        modalBody.innerHTML = `
+        <div class="form-group"><input type="text" id="editKlantId" value="${klantId}" placeholder="Klant ID"></div>
+        <div class="form-group"><input type="text" id="editCompanyName" value="${companyName}" placeholder="Bedrijfsnaam"></div>
+        <div class="form-group"><input type="email" id="editEmail" value="${email}" placeholder="E-mail"></div>
+      `;
+        modal.classList.add("active");
+      }
+
+      function openEditCors(id, origin) {
+        editingItem = { id, type: "cors" };
+        document.getElementById("modalTitle").innerText = "CORS Domein Bewerken";
+        modalBody.innerHTML = `
+        <div class="form-group"><input type="text" id="editOrigin" value="${origin}" placeholder="https://..."></div>
+      `;
+        modal.classList.add("active");
+      }
+
+      function closeModal() {
+        modal.classList.remove("active");
+        editingItem = null;
+      }
+
+      async function saveUpdate() {
+        if (!editingItem) return;
+
+        if (editingItem.type === "client") {
+          const body = {
+            klantId: document.getElementById("editKlantId").value,
+            companyName: document.getElementById("editCompanyName").value,
+            email: document.getElementById("editEmail").value,
+          };
+          await fetch(`/api/clients/${editingItem.id}`, { method: "PUT", headers: headers(), body: JSON.stringify(body) });
+          loadClients();
+        } else if (editingItem.type === "cors") {
+          const body = { origin: document.getElementById("editOrigin").value };
+          await fetch(`/api/cors/${editingItem.id}`, { method: "PUT", headers: headers(), body: JSON.stringify(body) });
+          loadCors();
+        }
+
+        closeModal();
+      }
+    </script>
+  </body>
+</html>
