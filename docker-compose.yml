@@ -24,7 +24,7 @@ services:
     restart: unless-stopped
 
   mongodb:
-    image: mongo:latest
+    image: mongo:4.4
     container_name: email_api_db
     ports:
       - "27017:27017"

@@ -13,8 +13,6 @@ const Admin = require("./models/Admin");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-runBackup();
-
 const seedAdmin = async () => {
   try {
     const adminCount = await Admin.countDocuments();
