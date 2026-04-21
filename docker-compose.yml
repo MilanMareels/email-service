@@ -19,6 +19,8 @@ services:
       - ./backups:/app/backups
     depends_on:
       - mongodb
+    networks:
+      - email_network
     restart: unless-stopped
 
   mongodb:
@@ -28,7 +30,13 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    networks:
+      - email_network
     restart: unless-stopped
+
+networks:
+  email_network:
+    driver: bridge
 
 volumes:
   mongodb_data:
