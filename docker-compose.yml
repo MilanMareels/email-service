@@ -2,12 +2,19 @@ version: "3.8"
 
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        - EMAIL_USER=${EMAIL_USER}
+        - EMAIL_PASS=${EMAIL_PASS}
+        - PORT=${PORT}
+        - MONGODB_URI=${MONGODB_URI}
+        - ADMIN_EMAIL=${ADMIN_EMAIL}
+        - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+        - JWT_SECRET=${JWT_SECRET}
     container_name: email_api_app
     ports:
       - "3004:3000"
-    env_file:
-      - .env
     volumes:
       - ./backups:/app/backups
     depends_on:

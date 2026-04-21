@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-04-21T13:17:58.493Z",
+  "clients": [
+    {
+      "_id": "69e75bac75976abc87e37514",
+      "klantId": "lannie",
+      "email": "lanniewebdesign@gmail.com",
+      "companyName": "Lannie"
+    }
+  ],
+  "cors": [],
+  "admins": [
+    {
+      "_id": "69e771ae7120d6b40c4dcc30",
+      "email": "milan.mareels@gmail.com",
+      "password": "$2b$12$XgZOjeQrWQHQuCdd3EZKq.Cwbbb9LY2jMTp241/UEixLC1vfGJcMi"
+    }
+  ]
+}
