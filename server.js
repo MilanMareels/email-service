@@ -56,7 +56,7 @@ app.use(
       try {
         const allowed = await CorsOrigin.findOne({ origin: origin });
 
-        if (allowed || origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1")) {
+        if (allowed || origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1") || origin.includes("100.72.226.60")) {
           callback(null, true);
         } else {
           callback(new Error("Not allowed by CORS policy."));
