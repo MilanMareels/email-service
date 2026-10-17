@@ -15,6 +15,11 @@ services:
     container_name: email_api_app
     ports:
       - "3004:3000"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
     volumes:
       - ./backups:/app/backups
     depends_on:
@@ -30,6 +35,11 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 384M
     networks:
       - email_network
     restart: unless-stopped
